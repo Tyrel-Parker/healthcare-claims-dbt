@@ -1,0 +1,12 @@
+definition_version: 2
+
+entities:
+  healthcare_dashboard:
+    type: streamlit
+    identifier:
+      name: HEALTHCARE_DASHBOARD
+      schema: GOLD
+      database: HEALTHCARE_CLAIMS
+    main_file: dashboard.py
+    query_warehouse: CLAIMS_DEV_WH
+    title: "Healthcare Claims Analytics"
