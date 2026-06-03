@@ -10,3 +10,5 @@ airflow/webserver_config.py
 airflow/standalone_admin_password.txt
 airflow/logs/__pycache__/
 *.pyc
+streamlit_app/.streamlit/secrets.toml
+VIDEOS.md

@@ -1,9 +1,40 @@
+import yaml
+import os
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.bash import BashOperator
+from airflow.operators.python import PythonOperator
 
 DBT_DIR = "/home/tyrel/repos/healthcare-claims-dbt/healthcare_claims"
 DBT_CMD = "/home/tyrel/repos/healthcare-claims-dbt/venv/bin/dbt"
+
+
+def _load_sf_creds():
+    profiles = yaml.safe_load(open(os.path.expanduser("~/.dbt/profiles.yml")))
+    dev = profiles["healthcare_claims"]["outputs"]["dev"]
+    return {
+        "account":   dev["account"],
+        "user":      dev["user"],
+        "password":  dev["password"],
+        "database":  dev["database"],
+        "warehouse": dev["warehouse"],
+        "role":      dev["role"],
+    }
+
+
+def call_quality_check(schema: str, table: str):
+    import snowflake.connector
+    creds = _load_sf_creds()
+    conn = snowflake.connector.connect(**creds)
+    cur = conn.cursor()
+    cur.execute(
+        f"CALL HEALTHCARE_CLAIMS.AUDIT.LOG_PIPELINE_QUALITY('{schema}', '{table}')"
+    )
+    result = cur.fetchone()[0]
+    print(result)
+    if result.startswith("WARNING"):
+        raise ValueError(f"Quality check warning: {result}")
+
 
 default_args = {
     "owner": "tyrel_parker",
@@ -21,13 +52,10 @@ with DAG(
     tags=["healthcare", "claims", "dbt", "snowflake"],
 ) as dag:
 
-    quality_check_raw = BashOperator(
+    quality_check_raw = PythonOperator(
         task_id="quality_check_raw",
-        bash_command=(
-            "snow sql "
-            "--query \"CALL HEALTHCARE_CLAIMS.AUDIT.LOG_PIPELINE_QUALITY('BRONZE', 'PROVIDER_CLAIMS_RAW');\" "
-            "--connection healthcare_admin"
-        ),
+        python_callable=call_quality_check,
+        op_kwargs={"schema": "BRONZE", "table": "PROVIDER_CLAIMS_RAW"},
     )
 
     dbt_run_bronze = BashOperator(
@@ -60,13 +88,10 @@ with DAG(
         bash_command=f"{DBT_CMD} test --select tag:gold --project-dir {DBT_DIR} --profiles-dir ~/.dbt",
     )
 
-    quality_check_bronze = BashOperator(
+    quality_check_bronze = PythonOperator(
         task_id="quality_check_bronze",
-        bash_command=(
-            "snow sql "
-            "--query \"CALL HEALTHCARE_CLAIMS.AUDIT.LOG_PIPELINE_QUALITY('BRONZE', 'BRZ_PROVIDER_CLAIMS');\" "
-            "--connection healthcare_admin"
-        ),
+        python_callable=call_quality_check,
+        op_kwargs={"schema": "BRONZE", "table": "BRZ_PROVIDER_CLAIMS"},
     )
 
     dbt_docs_generate = BashOperator(

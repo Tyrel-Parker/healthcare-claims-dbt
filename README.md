@@ -58,6 +58,23 @@ HEALTHCARE_CLAIMS
 
 ---
 
+## Demo
+
+### Pipeline — Airflow DAG
+<!-- screenshot: screenshots/airflow_dag.png -->
+<!-- screenshot: screenshots/airflow_success.png -->
+*Video walkthrough coming soon*
+
+### Analytics Dashboard
+<!-- screenshot: screenshots/dashboard_states.png -->
+<!-- screenshot: screenshots/dashboard_specialties.png -->
+*Live dashboard (Streamlit + Snowflake gold layer)*
+
+### Natural Language Queries — LLM Interface
+*Video walkthrough coming soon (local only — not deployed)*
+
+---
+
 ## Data Tests
 
 21 dbt tests covering not-null and uniqueness constraints across all layers. All pass.
