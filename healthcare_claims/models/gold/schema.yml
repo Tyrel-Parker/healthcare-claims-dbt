@@ -1,0 +1,65 @@
+version: 2
+
+models:
+  - name: dim_provider
+    description: >
+      Provider dimension with surrogate key. One row per NPI.
+      Source of truth for provider attributes across all gold-layer joins.
+    tags:
+      - gold
+    columns:
+      - name: provider_key
+        description: MD5 surrogate key generated from NPI.
+        tests:
+          - not_null
+          - unique
+      - name: npi
+        description: National Provider Identifier.
+        tests:
+          - not_null
+          - unique
+      - name: state_code
+        tests:
+          - not_null
+
+  - name: fact_provider_utilization
+    description: >
+      Provider-level utilization and financial fact table. One row per NPI.
+      Includes overall, drug, and medical service splits plus derived ratios.
+      Clustered by state_code and provider_type for efficient geographic and
+      specialty-based filtering.
+    tags:
+      - gold
+    columns:
+      - name: utilization_key
+        description: Surrogate key (NPI).
+        tests:
+          - not_null
+          - unique
+      - name: provider_key
+        description: Foreign key to dim_provider.
+        tests:
+          - not_null
+      - name: tot_medicare_payment
+        description: Total Medicare payment across all services for the provider.
+      - name: payment_to_charge_ratio
+        description: >
+          Medicare payment divided by submitted charge. Lower values indicate
+          greater markdown from billed amounts.
+
+  - name: rpt_provider_cost_summary
+    description: >
+      Reporting aggregate: one row per state + provider_type + entity_type.
+      Summarizes provider counts, volume, cost, and average beneficiary
+      risk/chronic condition burden. Designed for dashboard consumption.
+    tags:
+      - gold
+    columns:
+      - name: state_code
+        tests:
+          - not_null
+      - name: provider_type
+        tests:
+          - not_null
+      - name: provider_count
+        description: Distinct providers in this state/type/entity group.

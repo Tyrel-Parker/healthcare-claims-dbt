@@ -1,0 +1,56 @@
+version: 2
+
+models:
+  - name: stg_providers
+    description: >
+      Provider attributes cleaned and decoded. One row per NPI.
+      Decodes entity type and Medicare participation flag to human-readable values.
+      Casts RUCA code to numeric.
+    tags:
+      - silver
+    columns:
+      - name: npi
+        description: National Provider Identifier — unique provider key.
+        tests:
+          - not_null
+          - unique
+      - name: state_code
+        description: Two-letter state abbreviation.
+        tests:
+          - not_null
+      - name: provider_type
+        description: CMS specialty/provider type description.
+        tests:
+          - not_null
+
+  - name: stg_provider_utilization
+    description: >
+      Provider-level utilization and financial totals, cast to numeric types.
+      Splits out overall, drug, and medical (non-drug) service totals.
+      Suppression flags (drug_suppression_flag, med_suppression_flag) indicate
+      CMS redacted counts below 11 to protect beneficiary privacy.
+      Rows with unparseable total_beneficiaries are excluded.
+    tags:
+      - silver
+    columns:
+      - name: npi
+        description: Foreign key to stg_providers.
+        tests:
+          - not_null
+          - unique
+      - name: tot_medicare_payment
+        description: Total Medicare payment across all services.
+
+  - name: stg_provider_beneficiaries
+    description: >
+      Beneficiary demographic profile and chronic condition prevalence rates
+      for each provider's patient panel. Chronic condition columns are
+      percentages (0-100) as reported by CMS.
+    tags:
+      - silver
+    columns:
+      - name: npi
+        description: Foreign key to stg_providers.
+        tests:
+          - not_null
+          - unique

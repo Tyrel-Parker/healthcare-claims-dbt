@@ -1,0 +1,31 @@
+version: 2
+
+sources:
+  - name: bronze
+    database: HEALTHCARE_CLAIMS
+    schema: BRONZE
+    tables:
+      - name: provider_claims_raw
+        description: >
+          Raw CMS Medicare Physician & Other Practitioners by Provider (2024).
+          One row per rendering NPI. All 81 columns loaded as VARCHAR — type
+          casting and business logic applied in silver layer.
+
+models:
+  - name: brz_provider_claims
+    description: >
+      Bronze-layer passthrough of the raw CMS provider summary table.
+      Adds a _loaded_at audit timestamp; no type casting or business logic.
+      Grain: one row per NPI (provider).
+    tags:
+      - bronze
+    columns:
+      - name: rndrng_npi
+        description: National Provider Identifier — unique provider key.
+        tests:
+          - not_null
+          - unique
+      - name: _loaded_at
+        description: Timestamp when this row was materialized into the bronze layer.
+        tests:
+          - not_null
