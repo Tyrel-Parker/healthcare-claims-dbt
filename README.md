@@ -45,6 +45,8 @@ HEALTHCARE_CLAIMS
     └── rpt_provider_cost_summary    (aggregate by state × specialty × entity type)
 ```
 
+![Lineage Graph](image.png)
+
 ### Design decisions worth calling out
 
 - All columns are loaded as `VARCHAR` in the raw table — type casting happens in silver, not at load time. This means a bad batch never corrupts the raw layer.
