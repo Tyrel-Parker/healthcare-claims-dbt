@@ -66,9 +66,11 @@ HEALTHCARE_CLAIMS
 *Video walkthrough coming soon*
 
 ### Analytics Dashboard
+
+**[→ Live dashboard](https://healthcare-claims-dbt-7esclxkmavxvzczbqhhsee.streamlit.app/)** — publicly accessible, queries live Snowflake gold layer
+
 <!-- screenshot: screenshots/dashboard_states.png -->
 <!-- screenshot: screenshots/dashboard_specialties.png -->
-*Live dashboard (Streamlit + Snowflake gold layer)*
 
 ### Natural Language Queries — LLM Interface
 *Video walkthrough coming soon (local only — not deployed)*
